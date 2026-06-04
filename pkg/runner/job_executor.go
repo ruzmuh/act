@@ -88,10 +88,14 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 		// leaves Config.StepBarrier nil, so these are no-ops there.
 		barrierIndex, barrierStep := i, stepModel
 		var stepErr error
+		barrierStepObj := step
 		barrierInfo := func(when BarrierWhen, err error) StepBarrierInfo {
 			return StepBarrierInfo{
 				When: when, Index: barrierIndex, Step: barrierStep, Err: err,
 				Env: rc.Env, ContainerName: rc.jobContainerName(),
+				// Re-run the step's main in the live container; main() re-reads
+				// the (possibly edited) step model and rebuilds env on each call.
+				Rerun: func(ctx context.Context) error { return barrierStepObj.main()(ctx) },
 			}
 		}
 		if rc.Config.StepBarrier != nil {

@@ -62,4 +62,10 @@ type StepBarrierInfo struct {
 	// frontend can drop an interactive shell into it (e.g. `docker exec -it`).
 	// Empty when no job container is in use.
 	ContainerName string
+
+	// Rerun re-executes this step's main in the live job container. It re-reads
+	// Step (e.g. Step.Run) and rebuilds the env from the job env, so edits made
+	// while paused take effect — a debugger uses it to iterate on a step without
+	// restarting the whole run. Safe to call repeatedly during a pause.
+	Rerun func(ctx context.Context) error
 }
