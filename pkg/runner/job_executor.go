@@ -81,6 +81,16 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 
 		preSteps = append(preSteps, useStepLogger(rc, stepModel, stepStagePre, step.pre().ThenError(setJobError)))
 
+		// actl pause hook: fire the barrier right before this step's main
+		// executor. It blocks the pipeline until the front-end resumes. Upstream
+		// act leaves Config.StepBarrier nil, so this is a no-op there.
+		if rc.Config.StepBarrier != nil {
+			barrierInfo := StepBarrierInfo{Index: i, Step: stepModel}
+			steps = append(steps, func(ctx context.Context) error {
+				return rc.Config.StepBarrier(ctx, barrierInfo)
+			})
+		}
+
 		stepExec := step.main()
 		steps = append(steps, useStepLogger(rc, stepModel, stepStageMain, func(ctx context.Context) error {
 			err := stepExec(ctx)

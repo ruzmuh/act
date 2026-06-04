@@ -62,6 +62,12 @@ type Config struct {
 	ContainerNetworkMode               docker_container.NetworkMode // the network mode of job containers (the value of --network)
 	ActionCache                        ActionCache                  // Use a custom ActionCache Implementation
 	ConcurrentJobs                     int                          // Number of max concurrent jobs
+
+	// StepBarrier is actl's pause hook. If non-nil, it fires immediately before
+	// each step's main executor and blocks the job pipeline until it returns
+	// (nil resumes, an error aborts the job). Nil for upstream act. See
+	// step_barrier.go.
+	StepBarrier StepBarrier
 }
 
 func (config *Config) GetConcurrentJobs() int {
