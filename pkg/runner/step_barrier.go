@@ -51,6 +51,7 @@ func (w BarrierWhen) String() string {
 // live state a debugger needs to inspect while paused.
 type StepBarrierInfo struct {
 	When  BarrierWhen // before or after the step's main executor
+	JobID string      // id of the job this step belongs to (for multi-job runs)
 	Index int         // zero-based position of the step within the job
 	Step  *model.Step // the step model at this boundary
 	Err   error       // for When==BarrierAfter: the step's error, or nil on success
