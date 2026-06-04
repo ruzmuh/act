@@ -88,9 +88,15 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 		// leaves Config.StepBarrier nil, so these are no-ops there.
 		barrierIndex, barrierStep := i, stepModel
 		var stepErr error
+		barrierInfo := func(when BarrierWhen, err error) StepBarrierInfo {
+			return StepBarrierInfo{
+				When: when, Index: barrierIndex, Step: barrierStep, Err: err,
+				Env: rc.Env, ContainerName: rc.jobContainerName(),
+			}
+		}
 		if rc.Config.StepBarrier != nil {
 			steps = append(steps, func(ctx context.Context) error {
-				return rc.Config.StepBarrier(ctx, StepBarrierInfo{When: BarrierBefore, Index: barrierIndex, Step: barrierStep})
+				return rc.Config.StepBarrier(ctx, barrierInfo(BarrierBefore, nil))
 			})
 		}
 
@@ -108,7 +114,7 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 
 		if rc.Config.StepBarrier != nil {
 			steps = append(steps, func(ctx context.Context) error {
-				return rc.Config.StepBarrier(ctx, StepBarrierInfo{When: BarrierAfter, Index: barrierIndex, Step: barrierStep, Err: stepErr})
+				return rc.Config.StepBarrier(ctx, barrierInfo(BarrierAfter, stepErr))
 			})
 		}
 

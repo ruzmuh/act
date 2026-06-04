@@ -47,10 +47,19 @@ func (w BarrierWhen) String() string {
 	return "before"
 }
 
-// StepBarrierInfo describes the boundary at which the barrier fired.
+// StepBarrierInfo describes the boundary at which the barrier fired, plus the
+// live state a debugger needs to inspect while paused.
 type StepBarrierInfo struct {
 	When  BarrierWhen // before or after the step's main executor
 	Index int         // zero-based position of the step within the job
 	Step  *model.Step // the step model at this boundary
 	Err   error       // for When==BarrierAfter: the step's error, or nil on success
+
+	// Env is the job's live, interpolated environment at this boundary (the same
+	// map act mutates, safe to read while the pipeline is blocked here).
+	Env map[string]string
+	// ContainerName is the docker name of the running job container, so a
+	// frontend can drop an interactive shell into it (e.g. `docker exec -it`).
+	// Empty when no job container is in use.
+	ContainerName string
 }
