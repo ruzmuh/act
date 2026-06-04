@@ -81,13 +81,16 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 
 		preSteps = append(preSteps, useStepLogger(rc, stepModel, stepStagePre, step.pre().ThenError(setJobError)))
 
-		// actl pause hook: fire the barrier right before this step's main
-		// executor. It blocks the pipeline until the front-end resumes. Upstream
-		// act leaves Config.StepBarrier nil, so this is a no-op there.
+		// actl pause hook: barriers bracket this step's main executor so a
+		// front-end can halt before it runs and after it returns. The "after"
+		// barrier carries the step's error (for break-on-error) and, for the last
+		// step, is the live-container moment just before teardown. Upstream act
+		// leaves Config.StepBarrier nil, so these are no-ops there.
+		barrierIndex, barrierStep := i, stepModel
+		var stepErr error
 		if rc.Config.StepBarrier != nil {
-			barrierInfo := StepBarrierInfo{Index: i, Step: stepModel}
 			steps = append(steps, func(ctx context.Context) error {
-				return rc.Config.StepBarrier(ctx, barrierInfo)
+				return rc.Config.StepBarrier(ctx, StepBarrierInfo{When: BarrierBefore, Index: barrierIndex, Step: barrierStep})
 			})
 		}
 
@@ -99,8 +102,15 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 			} else if ctx.Err() != nil {
 				_ = setJobError(ctx, ctx.Err())
 			}
+			stepErr = err
 			return nil
 		}))
+
+		if rc.Config.StepBarrier != nil {
+			steps = append(steps, func(ctx context.Context) error {
+				return rc.Config.StepBarrier(ctx, StepBarrierInfo{When: BarrierAfter, Index: barrierIndex, Step: barrierStep, Err: stepErr})
+			})
+		}
 
 		postExec := useStepLogger(rc, stepModel, stepStagePost, step.post().ThenError(setJobError))
 		if postExecutor != nil {
