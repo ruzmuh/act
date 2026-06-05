@@ -69,4 +69,10 @@ type StepBarrierInfo struct {
 	// while paused take effect — a debugger uses it to iterate on a step without
 	// restarting the whole run. Safe to call repeatedly during a pause.
 	Rerun func(ctx context.Context) error
+
+	// CopyWorkdir copies the host working directory (Config.Workdir) into the job
+	// container's workspace, honouring .gitignore. A debugger uses it to make a
+	// local `actions/checkout` faithful — populating the workspace from the user's
+	// working tree at the moment checkout would run, instead of cloning a remote.
+	CopyWorkdir func(ctx context.Context) error
 }

@@ -96,6 +96,11 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 				// Re-run the step's main in the live container; main() re-reads
 				// the (possibly edited) step model and rebuilds env on each call.
 				Rerun: func(ctx context.Context) error { return barrierStepObj.main()(ctx) },
+				// Copy the host workdir into the container workspace (.gitignore
+				// honoured) — used to make a local checkout faithful.
+				CopyWorkdir: func(ctx context.Context) error {
+					return rc.JobContainer.CopyDir(rc.JobContainer.ToContainerPath(rc.Config.Workdir), rc.Config.Workdir+"/.", rc.Config.UseGitIgnore)(ctx)
+				},
 			}
 		}
 		if rc.Config.StepBarrier != nil {
