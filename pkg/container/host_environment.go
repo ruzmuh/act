@@ -113,6 +113,7 @@ func (e *HostEnvironment) CopyDir(destPath string, srcPath string, useGitIgnore 
 			Handler: &filecollector.CopyCollector{
 				DstDir: destPath,
 			},
+			SkipSubmodules: skipSubmodules(ctx),
 		}
 		return filepath.Walk(srcPath, fc.CollectFiles(ctx, []string{}))
 	}

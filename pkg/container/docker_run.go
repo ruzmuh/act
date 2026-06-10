@@ -783,6 +783,7 @@ func (cr *containerReference) copyDir(dstPath string, srcPath string, useGitIgno
 				GID:       cr.GID,
 				DstDir:    dstPath[1:],
 			},
+			SkipSubmodules: skipSubmodules(ctx),
 		}
 
 		err = filepath.Walk(srcPath, fc.CollectFiles(ctx, []string{}))

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nektos/act/pkg/common"
+	"github.com/nektos/act/pkg/container"
 	"github.com/nektos/act/pkg/model"
 )
 
@@ -97,8 +98,13 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 				// the (possibly edited) step model and rebuilds env on each call.
 				Rerun: func(ctx context.Context) error { return barrierStepObj.main()(ctx) },
 				// Copy the host workdir into the container workspace (.gitignore
-				// honoured) — used to make a local checkout faithful.
-				CopyWorkdir: func(ctx context.Context) error {
+				// honoured) — used to make a local checkout faithful. submodules
+				// mirrors the checkout step's `submodules:` input: when false the
+				// copy skips git submodule paths (checkout's default), as on GitHub.
+				CopyWorkdir: func(ctx context.Context, submodules bool) error {
+					if !submodules {
+						ctx = container.WithSkipSubmodules(ctx)
+					}
 					return rc.JobContainer.CopyDir(rc.JobContainer.ToContainerPath(rc.Config.Workdir), rc.Config.Workdir+"/.", rc.Config.UseGitIgnore)(ctx)
 				},
 			}

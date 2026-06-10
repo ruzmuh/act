@@ -74,5 +74,10 @@ type StepBarrierInfo struct {
 	// container's workspace, honouring .gitignore. A debugger uses it to make a
 	// local `actions/checkout` faithful — populating the workspace from the user's
 	// working tree at the moment checkout would run, instead of cloning a remote.
-	CopyWorkdir func(ctx context.Context) error
+	//
+	// submodules mirrors the checkout step's `submodules:` input: pass false to
+	// skip git submodule paths (checkout's default — submodules are not fetched
+	// unless asked), true to copy them in. The false path also keeps the copy
+	// cheap for repos with large vendored submodules.
+	CopyWorkdir func(ctx context.Context, submodules bool) error
 }

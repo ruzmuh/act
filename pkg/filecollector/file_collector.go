@@ -88,6 +88,12 @@ type FileCollector struct {
 	SrcPrefix string
 	Fs        Fs
 	Handler   Handler
+	// SkipSubmodules, when set, leaves git submodule paths out of the copy
+	// instead of recursing into them. actl uses it to keep a default local
+	// `actions/checkout` faithful (checkout defaults to `submodules: false`)
+	// and to avoid copying large vendored submodules. Upstream leaves it false,
+	// preserving the original recurse-into-submodules behaviour.
+	SkipSubmodules bool
 }
 
 type Fs interface {
@@ -166,6 +172,9 @@ func (fc *FileCollector) CollectFiles(ctx context.Context, submodulePath []strin
 			}
 		}
 		if err == nil && entry.Mode == filemode.Submodule {
+			if fc.SkipSubmodules {
+				return filepath.SkipDir
+			}
 			err = fc.Fs.Walk(file, fc.CollectFiles(ctx, split))
 			if err != nil {
 				return err
