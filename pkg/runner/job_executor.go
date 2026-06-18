@@ -82,11 +82,11 @@ func newJobExecutor(info jobInfo, sf stepFactory, rc *RunContext) common.Executo
 
 		preSteps = append(preSteps, useStepLogger(rc, stepModel, stepStagePre, step.pre().ThenError(setJobError)))
 
-		// actl pause hook: barriers bracket this step's main executor so a
+		// Optional pause hook: barriers bracket this step's main executor so a
 		// front-end can halt before it runs and after it returns. The "after"
 		// barrier carries the step's error (for break-on-error) and, for the last
-		// step, is the live-container moment just before teardown. Upstream act
-		// leaves Config.StepBarrier nil, so these are no-ops there.
+		// step, is the live-container moment just before teardown. When
+		// Config.StepBarrier is nil (the default), these are no-ops.
 		barrierIndex, barrierStep := i, stepModel
 		var stepErr error
 		barrierStepObj := step

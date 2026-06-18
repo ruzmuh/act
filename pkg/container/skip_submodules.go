@@ -2,15 +2,14 @@ package container
 
 import "context"
 
-// This file is part of the actl soft-fork patch. It is self-contained so the
-// diff against upstream act stays tiny and rebase-safe: it adds a way to ask a
-// CopyDir to leave git submodules out of the copy, threaded through the context
-// rather than the CopyDir signature (which has several callers and a test mock).
+// This file adds a way to ask a CopyDir to leave git submodules out of the copy,
+// threaded through the context rather than the CopyDir signature (which has
+// several callers and a test mock), so the change stays self-contained.
 //
-// actl uses it to make a default local `actions/checkout` faithful — checkout
-// defaults to `submodules: false`, so the workspace copy should skip submodule
-// paths instead of recursing into them (which is also far cheaper for repos with
-// large vendored submodules). Callers that don't set the key keep act's original
+// It lets a caller make a local `actions/checkout` faithful — checkout defaults
+// to `submodules: false`, so the workspace copy should skip submodule paths
+// instead of recursing into them (which is also far cheaper for repos with large
+// vendored submodules). Callers that don't set the key keep the original
 // recurse-into-submodules behaviour.
 
 type skipSubmodulesKey struct{}

@@ -6,16 +6,15 @@ import (
 	"github.com/nektos/act/pkg/model"
 )
 
-// This file is the actl soft-fork patch. It is intentionally self-contained so
-// the diff against upstream act stays tiny: the only edits to existing files are
-// one field on Config (see runner.go) and the call site in newJobExecutor (see
-// job_executor.go). Everything else lives here and never conflicts on rebase.
+// This file adds an optional pause hook at step boundaries. It is additive and
+// self-contained: the only edits to existing files are one field on Config (see
+// runner.go) and the call site in newJobExecutor (see job_executor.go).
 //
-// The goal (per actl's design) is a pause hook at step boundaries. act keeps the
-// job container alive and execs each step into it, so blocking *between* execs
-// yields a live workspace + env — exactly what a step-debugger needs.
+// act keeps the job container alive and execs each step into it, so a hook that
+// blocks between execs yields a live workspace + env — exactly what an
+// interactive step-debugger front-end needs.
 
-// StepBarrier is actl's pause hook (wired via Config.StepBarrier). It fires at
+// StepBarrier is an optional pause hook wired via Config.StepBarrier. It fires at
 // every step boundary — before a step's main executor and after it returns — and
 // the job pipeline blocks until it returns. Returning nil resumes; returning a
 // non-nil error aborts the job. A debugger front-end typically blocks inside the
@@ -26,7 +25,7 @@ import (
 // distinct value of BarrierAfter is the final boundary (after the last step, just
 // before teardown) and break-on-error (BarrierAfter carries the step's error).
 //
-// Upstream act leaves Config.StepBarrier nil and behaves exactly as before.
+// When Config.StepBarrier is nil (the default), behaviour is identical to before.
 type StepBarrier func(ctx context.Context, info StepBarrierInfo) error
 
 // BarrierWhen marks which side of a step's main executor the barrier fired on.

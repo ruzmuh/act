@@ -89,10 +89,10 @@ type FileCollector struct {
 	Fs        Fs
 	Handler   Handler
 	// SkipSubmodules, when set, leaves git submodule paths out of the copy
-	// instead of recursing into them. actl uses it to keep a default local
-	// `actions/checkout` faithful (checkout defaults to `submodules: false`)
-	// and to avoid copying large vendored submodules. Upstream leaves it false,
-	// preserving the original recurse-into-submodules behaviour.
+	// instead of recursing into them — e.g. to keep a local `actions/checkout`
+	// faithful (checkout defaults to `submodules: false`) and to avoid copying
+	// large vendored submodules. Left false, it preserves the original
+	// recurse-into-submodules behaviour.
 	SkipSubmodules bool
 }
 
